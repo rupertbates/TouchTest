@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+    <com.touchtest.CustomScrollView android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:descendantFocusability="afterDescendants"
+                android:id="@+id/scroll">
+        <LinearLayout android:id="@+id/frame"
+              android:layout_width="fill_parent"
+              android:background="@android:color/white"
+              android:layout_height="fill_parent">
+        <TextView android:id="@+id/text"
+
+                  android:layout_height="fill_parent"
+                  android:layout_width="fill_parent"
+                  android:textSize="40sp"
+                  android:text="This is some text to resize\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text"/>
+        </LinearLayout>
+    </com.touchtest.CustomScrollView>
+
+</LinearLayout>
