@@ -4,17 +4,23 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent">
     <com.touchtest.CustomScrollView android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:descendantFocusability="afterDescendants"
-                android:id="@+id/scroll">
+                                    android:layout_height="fill_parent"
+                                    android:descendantFocusability="afterDescendants"
+                                    android:id="@+id/scroll">
         <LinearLayout android:id="@+id/frame"
-              android:layout_width="fill_parent"
-              android:background="@android:color/white"
-              android:layout_height="fill_parent">
-        <TextView android:id="@+id/text"
-                  android:layout_height="fill_parent"
-                  android:layout_width="fill_parent"
-                  android:textSize="40sp"/>
+                      android:layout_width="fill_parent"
+                      android:background="@android:color/white"
+                      android:layout_height="fill_parent"
+                      android:orientation="vertical">
+            <TextView android:id="@+id/text2"
+                      android:layout_height="wrap_content"
+                      android:layout_width="fill_parent"
+                      android:text="This text is won't resize"
+                      android:textSize="40sp"/>
+            <TextView android:id="@+id/text"
+                      android:layout_height="fill_parent"
+                      android:layout_width="fill_parent"
+                      android:textSize="40sp"/>
         </LinearLayout>
     </com.touchtest.CustomScrollView>
 

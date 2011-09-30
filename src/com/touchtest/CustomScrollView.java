@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -130,7 +131,17 @@ public class CustomScrollView extends ScrollView {
      * @param ev
      */
     private void updateEventCoordinates(MotionEvent ev) {
-        ev.setLocation(ev.getX(0), ev.getY(0) + this.getScrollY());
+        float offset= 0;
+        for(int i = 0;i< getChildCount();i++){
+            View v = getChildAt(i);
+            if(v != text){
+                offset += v.getHeight();
+            }
+            else
+                break;
+
+        }
+        ev.setLocation(ev.getX(0), ev.getY(0) + this.getScrollY() - offset);
     }
 
     @Override
