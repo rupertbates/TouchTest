@@ -71,11 +71,8 @@ public class CustomScrollView extends ScrollView {
         dumpEvent(ev);
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-
-                //if (mode != ZOOM)
                 result = super.onTouchEvent(ev);
             case MotionEvent.ACTION_UP:
-                //log("ACTION_UP");
                 super.onTouchEvent(ev);
                 if (mode != ZOOM && mode != SCROLL)
                 {
@@ -85,29 +82,22 @@ public class CustomScrollView extends ScrollView {
                 mode = NONE;
                 break;
             case MotionEvent.ACTION_CANCEL:
-                //log("ACTION_CANCEL");
                 if (mode != ZOOM)
                     super.onTouchEvent(ev);
                 break;
             //Start Zoom
             case MotionEvent.ACTION_POINTER_DOWN:
-                //log("ACTION_POINTER_DOWN");
                 oldDist = spacing(event);
                 if (oldDist > touchSlop) {
                     mode = ZOOM;
-                    Log.i(TAG, "mode=ZOOM");
                 }
                 break;
             //End Zoom
             case MotionEvent.ACTION_POINTER_UP:
-                //log("ACTION_POINTER_UP");
-                //mode = NONE;
                 textSize = text.getTextSize();
-
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (mode == ZOOM) {
-                    //Log.v(TAG, "ACTION_MOVE ZOOM");
                     float newDist = spacing(event);
                     //float distanceChange = Math.abs(newDist - oldDist);
                     //Log.d(TAG, "distance moved = " + distanceChange);
@@ -116,16 +106,12 @@ public class CustomScrollView extends ScrollView {
                     float newSize = textSize * scale;
 
                     if (newSize > minZoom && newSize < maxZoom) {
-                        //Log.d(TAG, "oldDist=" + oldDist + ", newDist=" + newDist + ", scale=" + scale + ", textSize=" + newSize);
                         text.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
                     }
 
                 } else {
-                    //Log.v(TAG, "ACTION_MOVE SCROLL");
                     mode = SCROLL;
                     try {
-                        //text.onTouchEvent(ev);
-
                         result = super.onTouchEvent(ev);
                     } catch (ArrayIndexOutOfBoundsException ex) {
                         //This gets thrown sometimes by the scrollview, just ignore it
@@ -134,12 +120,9 @@ public class CustomScrollView extends ScrollView {
                 }
                 break;
             default:
-                //Log.d(TAG, "Calling super in ScrollView.OnTouchEvent " + mode + event.toString());
-                //text.onTouchEvent(ev);
                 result = super.onTouchEvent(ev);
         }
-        //text.onTouchEvent(ev);
-        return result; // indicate event was handled
+        return result; // indicates whether event was handled
     }
 
     /**
