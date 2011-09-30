@@ -12,11 +12,9 @@
               android:background="@android:color/white"
               android:layout_height="fill_parent">
         <TextView android:id="@+id/text"
-
                   android:layout_height="fill_parent"
                   android:layout_width="fill_parent"
-                  android:textSize="40sp"
-                  android:text="This is some text to resize\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text"/>
+                  android:textSize="40sp"/>
         </LinearLayout>
     </com.touchtest.CustomScrollView>
 

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TouchTest</string>
+    <string name="text">"This is some text to resize\n&lt;a href="http://www.google.co.uk"&gt;This is a link&lt;/a&gt;\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text\nThis is some more text"</string>
 </resources>

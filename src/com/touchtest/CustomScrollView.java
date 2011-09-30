@@ -1,127 +1,264 @@
 package com.touchtest;
 
 import android.content.Context;
+import android.text.style.URLSpan;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.GestureDetector;
+import android.util.TypedValue;
 import android.view.MotionEvent;
-import android.view.View;
+import android.view.ViewConfiguration;
 import android.widget.ScrollView;
-
-import java.lang.annotation.Retention;
+import android.widget.TextView;
 
 public class CustomScrollView extends ScrollView {
-    private GestureDetector gestureDetector;
-    View.OnTouchListener gestureListener;
     private int mode;
     private static final int NONE = 0;
     private static final int ZOOM = 1;
     private static final String TAG = "Tag.ScrollView";
     private static final int SCROLL = 2;
+    private TextView text;
+    private float textSize;
+    private int maxZoom;
+    private int minZoom;
+    private int touchSlop;
+    private float oldDist;
+    private URLSpan[] urls;
 
     public CustomScrollView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        gestureDetector = new GestureDetector(new YScrollDetector());
-        setFadingEdgeLength(0);
-
     }
 
-    @Override
+    public void setTextView(TextView textView) {
+        text = textView;
+        textSize = text.getTextSize();
+        maxZoom = 150;
+        minZoom = 15;
+        touchSlop = ViewConfiguration.getTouchSlop();
+    }
+
+    private void dumpEvent(MotionEvent event) {
+        String names[] = {"DOWN", "UP", "MOVE", "CANCEL", "OUTSIDE",
+                "POINTER_DOWN", "POINTER_UP", "7?", "8?", "9?"};
+        String modes[] = {"NONE", "ZOOM", "SCROLL"};
+        StringBuilder sb = new StringBuilder();
+        int action = event.getAction();
+        int actionCode = action & MotionEvent.ACTION_MASK;
+        sb.append("event ACTION_").append(names[actionCode]);
+        if (actionCode == MotionEvent.ACTION_POINTER_DOWN
+                || actionCode == MotionEvent.ACTION_POINTER_UP) {
+            sb.append("(pid ").append(
+                    action >> MotionEvent.ACTION_POINTER_ID_SHIFT);
+            sb.append(")");
+        }
+        sb.append(" mode=").append(modes[mode]).append(" ");
+
+        sb.append("[");
+        for (int i = 0; i < event.getPointerCount(); i++) {
+            sb.append("#").append(i);
+            sb.append("(pid ").append(event.getPointerId(i));
+            sb.append(")=").append((int) event.getX(i));
+            sb.append(",").append((int) event.getY(i));
+            if (i + 1 < event.getPointerCount())
+                sb.append(";");
+        }
+        sb.append("]");
+        Log.d(TAG, sb.toString());
+    }
+
     public boolean onTouchEvent(MotionEvent ev) {
-        return super.onTouchEvent(ev);
+        boolean result = true;
+        MotionEventWrapper event = MotionEventWrapper.wrap(ev);
+        dumpEvent(ev);
+        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN:
+
+                //if (mode != ZOOM)
+                result = super.onTouchEvent(ev);
+            case MotionEvent.ACTION_UP:
+                //log("ACTION_UP");
+                super.onTouchEvent(ev);
+                if (mode != ZOOM && mode != SCROLL)
+                {
+                    updateEventCoordinates(ev);
+                    text.onTouchEvent(ev);
+                }
+                mode = NONE;
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                //log("ACTION_CANCEL");
+                if (mode != ZOOM)
+                    super.onTouchEvent(ev);
+                break;
+            //Start Zoom
+            case MotionEvent.ACTION_POINTER_DOWN:
+                //log("ACTION_POINTER_DOWN");
+                oldDist = spacing(event);
+                if (oldDist > touchSlop) {
+                    mode = ZOOM;
+                    Log.i(TAG, "mode=ZOOM");
+                }
+                break;
+            //End Zoom
+            case MotionEvent.ACTION_POINTER_UP:
+                //log("ACTION_POINTER_UP");
+                //mode = NONE;
+                textSize = text.getTextSize();
+
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (mode == ZOOM) {
+                    //Log.v(TAG, "ACTION_MOVE ZOOM");
+                    float newDist = spacing(event);
+                    //float distanceChange = Math.abs(newDist - oldDist);
+                    //Log.d(TAG, "distance moved = " + distanceChange);
+
+                    float scale = newDist / oldDist;
+                    float newSize = textSize * scale;
+
+                    if (newSize > minZoom && newSize < maxZoom) {
+                        //Log.d(TAG, "oldDist=" + oldDist + ", newDist=" + newDist + ", scale=" + scale + ", textSize=" + newSize);
+                        text.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
+                    }
+
+                } else {
+                    //Log.v(TAG, "ACTION_MOVE SCROLL");
+                    mode = SCROLL;
+                    try {
+                        //text.onTouchEvent(ev);
+
+                        result = super.onTouchEvent(ev);
+                    } catch (ArrayIndexOutOfBoundsException ex) {
+                        //This gets thrown sometimes by the scrollview, just ignore it
+                        //Log.e(TAG, "Error in scrollview.OnTouch", ex);
+                    }
+                }
+                break;
+            default:
+                //Log.d(TAG, "Calling super in ScrollView.OnTouchEvent " + mode + event.toString());
+                //text.onTouchEvent(ev);
+                result = super.onTouchEvent(ev);
+        }
+        //text.onTouchEvent(ev);
+        return result; // indicate event was handled
     }
 
-    private void logMode(){
-        if(mode==NONE)
-            Log.i(TAG, "mode=NONE");
-        else if(mode==SCROLL)
-            Log.i(TAG, "mode=SCROLL");
-        else if(mode==ZOOM)
-            Log.i(TAG, "mode=ZOOM");
-        else
-            Log.i(TAG, "mode=UNKNOWN");
+    /**
+     * Change the y coordinates of this motion event to take account of  scrolling
+     * @param ev
+     */
+    private void updateEventCoordinates(MotionEvent ev) {
+        ev.setLocation(ev.getX(0), ev.getY(0) + this.getScrollY());
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-
-        switch (ev.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN:
-                Log.d(TAG, "ACTION_DOWN");
-                logMode();
-                if(mode == SCROLL){
-                    mode = NONE;
-                    return true;
-                }
-                break;
-            case MotionEvent.ACTION_CANCEL:
-                Log.d(TAG, "ACTION_CANCEL");
-                if(mode == SCROLL){
-                    logMode();
-                    mode = NONE;
-                    return true;
-                }
-                break;
-            //start
-            case MotionEvent.ACTION_POINTER_DOWN:
-                Log.d(TAG, "ACTION_POINTER_DOWN");
-                logMode();
-                mode = ZOOM;
-
-                break;
-            //end
-            case MotionEvent.ACTION_POINTER_UP:
-                Log.d(TAG, "ACTION_POINTER_UP");
-                logMode();
-                mode = NONE;
-
-                break;
-            case MotionEvent.ACTION_MOVE:
-                //Log.d(TAG, "ACTION_MOVE");
-                if(mode == ZOOM)
-
-                    Log.v(TAG, "mode=ZOOM");
-                else
-                    mode = SCROLL;
-                    //Log.i(TAG, "mode=SCROLL");
-                break;
-            case MotionEvent.ACTION_UP:
-                Log.d(TAG, "ACTION_UP");
-                logMode();
-                mode = NONE;
-
-                break;
-
-        }
-        if (mode == ZOOM) return false;
-        //return false;
-        //Call super first because it does some hidden motion event handling
-        boolean result = super.onInterceptTouchEvent(ev);
-        //Now see if we are scrolling vertically with the custom gesture detector
-        if (gestureDetector.onTouchEvent(ev)) {
-            Log.d("Touch", "Intercepting event in scrollview");
-            return result;
-        }
-        //If not scrolling vertically (more y than x), don't hijack the event.
-        else {
-            return false;
-        }
+        int action = (ev.getAction() & MotionEvent.ACTION_MASK);
+        boolean result;
+        if (action == MotionEvent.ACTION_POINTER_DOWN ||
+                action == MotionEvent.ACTION_POINTER_UP ||
+                action == MotionEvent.ACTION_DOWN ||
+                action == MotionEvent.ACTION_UP) {
+            log("intercepting event");
+            result = true;
+        } else
+            result = super.onInterceptTouchEvent(ev);
+        log("onIntercept Result = " + result);
+        return result;
     }
 
-    // Return false if we're scrolling in the x direction
-    class YScrollDetector extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+    private void log(String message) {
+        if (mode == NONE)
+            Log.i(TAG, message + " mode=NONE");
+        else if (mode == SCROLL)
+            Log.i(TAG, message + " mode=SCROLL");
+        else if (mode == ZOOM)
+            Log.i(TAG, message + " mode=ZOOM");
+        else
+            Log.i(TAG, message + " mode=UNKNOWN");
+    }
+
+
+    private float spacing(MotionEventWrapper event) {
+        float x = event.getX(0) - event.getX(1);
+        float y = event.getY(0) - event.getY(1);
+        return (float) Math.sqrt(x * x + y * y);
+    }
+
+    public static class MotionEventWrapper {
+        protected MotionEvent event;
+
+        MotionEventWrapper(MotionEvent event) {
+            this.event = event;
+        }
+
+        static public MotionEventWrapper wrap(MotionEvent event) {
             try {
-                if (Math.abs(distanceY) > Math.abs(distanceX)) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } catch (Exception e) {
-                // nothing
+                return new NewMotionEvent(event);
+            } catch (VerifyError e) {
+                return new MotionEventWrapper(event);
             }
-            return false;
+        }
+
+
+        public int getAction() {
+            return event.getAction();
+        }
+
+        public float getX() {
+            return event.getX();
+        }
+
+        public float getX(int pointerIndex) {
+            verifyPointerIndex(pointerIndex);
+            return getX();
+        }
+
+        public float getY() {
+            return event.getY();
+        }
+
+        public float getY(int pointerIndex) {
+            verifyPointerIndex(pointerIndex);
+            return getY();
+        }
+
+        public int getPointerCount() {
+            return 1;
+        }
+
+        public int getPointerId(int pointerIndex) {
+            verifyPointerIndex(pointerIndex);
+            return 0;
+        }
+
+        private void verifyPointerIndex(int pointerIndex) {
+            if (pointerIndex > 0) {
+                throw new IndexOutOfBoundsException("Index not supported on OS versions < 5");
+            }
+        }
+
+        public static class NewMotionEvent extends MotionEventWrapper {
+
+            protected NewMotionEvent(MotionEvent event) {
+                super(event);
+            }
+
+            public float getX(int pointerIndex) {
+                return event.getX(pointerIndex);
+            }
+
+            public float getY(int pointerIndex) {
+                return event.getY(pointerIndex);
+            }
+
+            public int getPointerCount() {
+                return event.getPointerCount();
+            }
+
+            public int getPointerId(int pointerIndex) {
+                return event.getPointerId(pointerIndex);
+            }
         }
     }
+
 }
