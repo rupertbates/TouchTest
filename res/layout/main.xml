@@ -3,7 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent">
-    <com.touchtest.CustomScrollView android:layout_width="fill_parent"
+    <ScrollView android:layout_width="fill_parent"
                                     android:layout_height="fill_parent"
                                     android:descendantFocusability="afterDescendants"
                                     android:id="@+id/scroll">
@@ -22,6 +22,6 @@
                       android:layout_width="fill_parent"
                       android:textSize="40sp"/>
         </LinearLayout>
-    </com.touchtest.CustomScrollView>
+    </ScrollView>
 
 </LinearLayout>

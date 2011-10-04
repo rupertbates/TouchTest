@@ -7,6 +7,7 @@ import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MyActivity extends Activity {
@@ -33,8 +34,9 @@ public class MyActivity extends Activity {
 //            }
 //        });
 
-        CustomScrollView scroll = (CustomScrollView) findViewById(R.id.scroll);
-        scroll.setTextView(textView);
+        ScrollView scroll = (ScrollView) findViewById(R.id.scroll);
+        scroll.setOnTouchListener(new ZoomTouchListener(textView));
+        //scroll.setTextView(textView);
     }
 
 }
