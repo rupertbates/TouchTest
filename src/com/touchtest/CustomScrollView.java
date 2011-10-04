@@ -69,17 +69,24 @@ public class CustomScrollView extends ScrollView {
     public boolean onTouchEvent(MotionEvent ev) {
         boolean result = true;
         MotionEventWrapper event = MotionEventWrapper.wrap(ev);
-        dumpEvent(ev);
+
+        //ACTION_POINTER_DOWN doesn't seem to get called reliably within
+        //the scrollview so we have to catch the start of a zoom gesture manually
+
+        if(event.getPointerCount() > 1 && mode != ZOOM)
+            doPointerDown(event);
+        //log("pointer count=" + ev.getPointerCount());
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 result = super.onTouchEvent(ev);
+                break;
             case MotionEvent.ACTION_UP:
                 super.onTouchEvent(ev);
-                if (mode != ZOOM && mode != SCROLL)
-                {
-                    updateEventCoordinates(ev);
-                    text.onTouchEvent(ev);
-                }
+//                if (mode != ZOOM && mode != SCROLL)
+//                {
+//                    updateEventCoordinates(ev);
+//                    text.onTouchEvent(ev);
+//                }
                 mode = NONE;
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -88,20 +95,17 @@ public class CustomScrollView extends ScrollView {
                 break;
             //Start Zoom
             case MotionEvent.ACTION_POINTER_DOWN:
-                oldDist = spacing(event);
-                if (oldDist > touchSlop) {
-                    mode = ZOOM;
-                }
+                doPointerDown(event);
                 break;
             //End Zoom
             case MotionEvent.ACTION_POINTER_UP:
+                dumpEvent(ev);
                 textSize = text.getTextSize();
                 break;
             case MotionEvent.ACTION_MOVE:
+                //dumpEvent(ev);
                 if (mode == ZOOM) {
                     float newDist = spacing(event);
-                    //float distanceChange = Math.abs(newDist - oldDist);
-                    //Log.d(TAG, "distance moved = " + distanceChange);
 
                     float scale = newDist / oldDist;
                     float newSize = textSize * scale;
@@ -120,45 +124,51 @@ public class CustomScrollView extends ScrollView {
                     }
                 }
                 break;
-            default:
-                result = super.onTouchEvent(ev);
+//            default:
+//                result = super.onTouchEvent(ev);
         }
         return result; // indicates whether event was handled
     }
 
-    /**
-     * Change the y coordinates of this motion event to take account of  scrolling
-     * @param ev
-     */
-    private void updateEventCoordinates(MotionEvent ev) {
-        float offset= 0;
-        for(int i = 0;i< getChildCount();i++){
-            View v = getChildAt(i);
-            if(v != text){
-                offset += v.getHeight();
-            }
-            else
-                break;
-
+    private void doPointerDown(MotionEventWrapper event){
+        oldDist = spacing(event);
+        if (oldDist > touchSlop) {
+            mode = ZOOM;
         }
-        ev.setLocation(ev.getX(0), ev.getY(0) + this.getScrollY() - offset);
     }
 
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        int action = (ev.getAction() & MotionEvent.ACTION_MASK);
-        boolean result;
-        if (action == MotionEvent.ACTION_POINTER_DOWN ||
-                action == MotionEvent.ACTION_POINTER_UP ||
-                action == MotionEvent.ACTION_DOWN ||
-                action == MotionEvent.ACTION_UP) {
-            log("intercepting event");
-            result = true;
-        } else
-            result = super.onInterceptTouchEvent(ev);
-        log("onIntercept Result = " + result);
-        return result;
-    }
+
+//    /**
+//     * Change the y coordinates of this motion event to take account of  scrolling
+//     * @param ev
+//     */
+//    private void updateEventCoordinates(MotionEvent ev) {
+//        float offset= 0;
+//        for(int i = 0;i< getChildCount();i++){
+//            View v = getChildAt(i);
+//            if(v != text){
+//                offset += v.getHeight();
+//            }
+//            else
+//                break;
+//
+//        }
+//        ev.setLocation(ev.getX(0), ev.getY(0) + this.getScrollY() - offset);
+//    }
+
+//    @Override
+//    public boolean onInterceptTouchEvent(MotionEvent ev) {
+//        int action = (ev.getAction() & MotionEvent.ACTION_MASK);
+//        boolean result;
+//        if (action == MotionEvent.ACTION_POINTER_DOWN ||
+//                action == MotionEvent.ACTION_POINTER_UP ){
+//            //log("intercepting event");
+//            result = true;
+//        } else
+//            result = super.onInterceptTouchEvent(ev);
+//        //log("onIntercept Result = " + result);
+//        return result;
+//    }
 
     private void log(String message) {
         if (mode == NONE)

@@ -21,6 +21,11 @@ public class MyActivity extends Activity {
         String text = getString(R.string.text);
         textView.setText(Html.fromHtml(text));
         textView.setMovementMethod(LinkMovementMethod.getInstance());
+
+        TextView textView2 = (TextView) findViewById(R.id.text2);
+        textView2.setText(Html.fromHtml(text));
+        textView2.setMovementMethod(LinkMovementMethod.getInstance());
+
 //        textView.setOnTouchListener(new View.OnTouchListener() {
 //            public boolean onTouch(View view, MotionEvent motionEvent) {
 //                //view.onTouchEvent(motionEvent);
